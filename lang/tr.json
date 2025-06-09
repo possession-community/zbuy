@@ -1,0 +1,15 @@
+{
+	"You cannot use this weapon": "Bu silahı kullanamazsınız. => {0}",
+	"Buy commands are disabled": "Satın alma komutları devre dışı.",
+	"Invalid weapon command": "Geçersiz silah komutu.",
+	"Unknown weapon": "Bilinmeyen silah: {0}",
+	"Weapon not configured": "Silah yapılandırılmamış: {0}",
+	"This weapon cannot be purchased": "Bu silah satın alınamaz.",
+	"You must be alive to buy weapons": "Silah satın almak için hayatta olmalısınız.",
+	"Insufficient funds": "Yetersiz para. ${0} gerekli, ${1} var",
+	"Purchased weapon": "{0} silahını ${1} karşılığında satın aldınız",
+	"Buy commands enabled": "Satın alma komutları etkinleştirildi",
+	"Buy commands disabled": "Satın alma komutları devre dışı bırakıldı",
+	"Knockback system enabled": "Geri tepme sistemi etkinleştirildi",
+	"Knockback system disabled": "Geri tepme sistemi devre dışı bırakıldı"
+}

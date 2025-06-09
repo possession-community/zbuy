@@ -1,0 +1,15 @@
+{
+	"You cannot use this weapon": "Você não pode usar essa arma => {0}",
+	"Buy commands are disabled": "Comandos de compra estão desabilitados.",
+	"Invalid weapon command": "Comando de arma inválido.",
+	"Unknown weapon": "Arma desconhecida: {0}",
+	"Weapon not configured": "Arma não configurada: {0}",
+	"This weapon cannot be purchased": "Esta arma não pode ser comprada.",
+	"You must be alive to buy weapons": "Você deve estar vivo para comprar armas.",
+	"Insufficient funds": "Fundos insuficientes. Precisa de ${0}, tem ${1}",
+	"Purchased weapon": "Comprou {0} por ${1}",
+	"Buy commands enabled": "Comandos de compra habilitados",
+	"Buy commands disabled": "Comandos de compra desabilitados",
+	"Knockback system enabled": "Sistema de recuo habilitado",
+	"Knockback system disabled": "Sistema de recuo desabilitado"
+}
