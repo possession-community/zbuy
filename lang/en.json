@@ -1,0 +1,15 @@
+{
+	"You cannot use this weapon": "You cannot use this weapon => {0}",
+	"Buy commands are disabled": "Buy commands are disabled.",
+	"Invalid weapon command": "Invalid weapon command.",
+	"Unknown weapon": "Unknown weapon: {0}",
+	"Weapon not configured": "Weapon not configured: {0}",
+	"This weapon cannot be purchased": "This weapon cannot be purchased.",
+	"You must be alive to buy weapons": "You must be alive to buy weapons.",
+	"Insufficient funds": "Insufficient funds. Need ${0}, have ${1}",
+	"Purchased weapon": "Purchased {0} for ${1}",
+	"Buy commands enabled": "Buy commands enabled",
+	"Buy commands disabled": "Buy commands disabled",
+	"Knockback system enabled": "Knockback system enabled",
+	"Knockback system disabled": "Knockback system disabled"
+}

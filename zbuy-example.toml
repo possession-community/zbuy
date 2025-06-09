@@ -1,0 +1,179 @@
+# Global Buy and Knockback system settings
+EnableBuyCommands = true
+EnableKnockback = false
+
+# Supported datas
+
+# EnableBuyCommands            - Enable/disable the buy command system
+# EnableKnockback              - Enable/disable the knockback system
+
+# [["weapon_name"]]
+# Clip                         - Sets weapon clip
+# Ammo                         - Sets weapon ammo
+# BlockUsing                   - Block weapon usage
+# IgnorePickUpFromBlockUsing   - Allows picking up the weapon even if usage is blocked
+# ReloadAfterShoot             - Automatically reloads after each shot
+# UnlimitedAmmo                - Enables unlimited ammo
+# UnlimitedClip                - Enables unlimited clip
+# OnlyHeadshot                 - Restricts damage to headshots only
+# ViewModel                    - The model path displayed from the player's perspective
+# WorldModel                   - The model path displayed in the world
+# AdminFlagsToIgnoreBlockUsing - Admin flags that bypass usage restrictions
+# WeaponQuota                  - Defines weapon limits { playercount: allowed amount }
+#                                { 0 = 1, 5 = 2, 10 = 3, 16 = 4, 32 = 5 } 0-4 => 1, 5-9 => 3, 10-15 => 4, 16-31 => 4, 32-. => 5
+# Damage                       - The weapon's damage value or calculation formula
+#                                Allowed (=,+,-,/,*)
+
+# Price                        - Base price for the weapon
+# PriceScale                   - Price scaling factor for multiple purchases
+# PriceScaleMultiplicative     - If true: price *= scale^count, if false: price += (price * scale * count)
+# EnableBuyCommand             - Enable/disable buy commands for this weapon
+# BuyAliases                   - Alternative names for buy commands (e.g., ["ak", "ak47", "kalash"])
+
+# KnockbackScale               - Knockback multiplier for this weapon (0 = no knockback, higher = more knockback)
+
+[WeaponDatas]
+
+# Pistol
+[WeaponDatas.weapon_glock]
+EnableBuyCommand = true
+
+[WeaponDatas.weapon_usp_silencer]
+EnableBuyCommand = true
+BuyAliases = ["usp"]
+
+[WeaponDatas.weapon_p250]
+EnableBuyCommand = true
+
+[WeaponDatas.weapon_tec9]
+EnableBuyCommand = true
+BuyAliases = ["tec"]
+
+[WeaponDatas.weapon_fiveseven]
+EnableBuyCommand = true
+BuyAliases = ["57"]
+
+[WeaponDatas.weapon_cz75a]
+EnableBuyCommand = true
+BuyAliases = ["cz"]
+
+[WeaponDatas.weapon_deagle]
+EnableBuyCommand = true
+
+[WeaponDatas.weapon_revolver]
+EnableBuyCommand = true
+BuyAliases = ["r8"]
+
+# SMG
+[WeaponDatas.weapon_mac10]
+EnableBuyCommand = true
+BuyAliases = ["mac"]
+
+[WeaponDatas.weapon_mp9]
+EnableBuyCommand = true
+
+[WeaponDatas.weapon_mp7]
+EnableBuyCommand = true
+
+[WeaponDatas.weapon_ump45]
+EnableBuyCommand = true
+BuyAliases = ["ump"]
+
+[WeaponDatas.weapon_bizon]
+EnableBuyCommand = true
+
+[WeaponDatas.weapon_p90]
+EnableBuyCommand = true
+BuyAliases = ["p90"]
+
+# Shotgun
+[WeaponDatas.weapon_nova]
+EnableBuyCommand = true
+
+[WeaponDatas.weapon_xm1014]
+EnableBuyCommand = true
+BuyAliases = ["xm"]
+
+[WeaponDatas.weapon_sawedoff]
+EnableBuyCommand = true
+BuyAliases = ["sawed"]
+
+[WeaponDatas.weapon_mag7]
+EnableBuyCommand = true
+
+# Rifles
+[WeaponDatas.weapon_famas]
+EnableBuyCommand = true
+
+[WeaponDatas.weapon_galil]
+EnableBuyCommand = true
+
+[WeaponDatas.weapon_m4a1]
+EnableBuyCommand = true
+BuyAliases = ["m4a4", "m4", "a4"]
+
+[WeaponDatas.weapon_m4a1_silencer]
+EnableBuyCommand = true
+BuyAliases = ["m4a1s", "m4s", "1s"]
+
+[WeaponDatas.weapon_ak47]
+EnableBuyCommand = true
+BuyAliases = ["ak"]
+
+[WeaponDatas.weapon_aug]
+EnableBuyCommand = true
+
+[WeaponDatas.weapon_sg556]
+EnableBuyCommand = true
+BuyAliases = ["sg"]
+
+# Sniper Rifles
+[WeaponDatas.weapon_ssg08]
+EnableBuyCommand = true
+BuyAliases = ["scout", "ssg"]
+
+[WeaponDatas.weapon_awp]
+EnableBuyCommand = true
+BuyAliases = ["awp"]
+
+[WeaponDatas.weapon_g3sg1]
+EnableBuyCommand = true
+BuyAliases = ["g3"]
+
+[WeaponDatas.weapon_scar20]
+EnableBuyCommand = true
+BuyAliases = ["scar"]
+
+# Machine Guns
+[WeaponDatas.weapon_m249]
+EnableBuyCommand = true
+
+[WeaponDatas.weapon_negev]
+EnableBuyCommand = true
+
+# Knife
+[WeaponDatas.weapon_knife]
+EnableBuyCommand = false
+
+# Grenades
+[WeaponDatas.weapon_hegrenade]
+EnableBuyCommand = true
+BuyAliases = ["he", "hegrenade", "nade"]
+
+[WeaponDatas.weapon_flashbang]
+EnableBuyCommand = false
+BuyAliases = ["flash"]
+
+[WeaponDatas.weapon_smokegrenade]
+EnableBuyCommand = false
+BuyAliases = ["smoke"]
+
+[WeaponDatas.weapon_incgrenade]
+EnableBuyCommand = false
+BuyAliases = ["inc"]
+
+[WeaponDatas.weapon_molotov]
+EnableBuyCommand = true
+
+[WeaponDatas.weapon_decoy]
+EnableBuyCommand = false

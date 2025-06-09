@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<OutputPath>$(ProjectDir)BuildOutput\plugins\zbuy\</OutputPath>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="CounterStrikeSharp.API" Version="1.0.318" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="lang\**\*.*" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
+	<Target Name="CopyConfigFiles" AfterTargets="Build">
+		<ItemGroup>
+			<FilesToCopy Include="$(ProjectDir)zbuy-example.toml" />
+		</ItemGroup>
+		<Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(ProjectDir)BuildOutput\configs\plugins\zbuy\" />
+	</Target>
+</Project>
