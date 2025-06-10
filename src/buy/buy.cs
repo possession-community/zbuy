@@ -88,6 +88,12 @@ public static class BuySystem
             player.PrintToChat($" {ChatColors.Red}[ZBuy] {Zbuy.Instance.Localizer["Weapon not configured", weaponName]}");
             return;
         }
+
+        if (!ConVarManager.IsWeaponBuyEnabled(weaponName))
+        {
+            player.PrintToChat($" {ChatColors.Red}[ZBuy] {Zbuy.Instance.Localizer["This weapon cannot be purchased"]}");
+            return;
+        }
         
         if (weaponData.EnableBuyCommand != true)
         {
@@ -122,6 +128,28 @@ public static class BuySystem
     
     private static int CalculateWeaponPrice(CCSPlayerController player, string weaponName, WeaponData weaponData)
     {
+        int? convarPrice = ConVarManager.GetWeaponPrice(weaponName);
+        if (convarPrice.HasValue)
+        {
+            int convarBasePrice = convarPrice.Value;
+            int convarPurchaseCount = GetPurchaseCount(player, weaponName);
+            
+            if (convarPurchaseCount == 0)
+                return convarBasePrice;
+                
+            float? convarPriceScale = ConVarManager.GetWeaponPriceScale(weaponName);
+            float convarScale = convarPriceScale ?? weaponData.PriceScale ?? 1.0f;
+            
+            if (weaponData.PriceScaleMultiplicative == true)
+            {
+                return (int)(convarBasePrice * Math.Pow(convarScale, convarPurchaseCount));
+            }
+            else
+            {
+                return (int)(convarBasePrice + (convarBasePrice * convarScale * convarPurchaseCount));
+            }
+        }
+        
         if (!weaponData.Price.HasValue)
             return 0;
             

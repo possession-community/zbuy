@@ -24,7 +24,10 @@ public static class KnockbackSystem
         if (!Zbuy.Instance.Config.WeaponDatas.TryGetValue(weaponName, out WeaponData? weaponData))
             return;
             
-        if (!weaponData.KnockbackScale.HasValue || weaponData.KnockbackScale.Value <= 0)
+        float? convarKnockbackScale = ConVarManager.GetWeaponKnockbackScale(weaponName);
+        float knockbackScale = convarKnockbackScale ?? weaponData.KnockbackScale ?? 0f;
+        
+        if (knockbackScale <= 0)
             return;
             
         Vector? victimPos = victim.PlayerPawn.Value.AbsOrigin;
@@ -36,7 +39,7 @@ public static class KnockbackSystem
         Vector direction = victimPos - attackerPos;
         Vector normalizedDirection = NormalizeVector(direction);
         
-        float knockbackForce = damage * weaponData.KnockbackScale.Value;
+        float knockbackForce = damage * knockbackScale;
         
         Vector knockbackVelocity = new Vector(
             normalizedDirection.X * knockbackForce,

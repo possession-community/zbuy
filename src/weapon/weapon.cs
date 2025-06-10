@@ -97,15 +97,18 @@ public static class Weapon
         return !string.IsNullOrEmpty(player?.PlayerName) ? player : null;
     }
 
-    public static void SetDamage(CTakeDamageInfo info, WeaponData weaponData)
+    public static void SetDamage(CTakeDamageInfo info, WeaponData weaponData, string weaponName)
     {
-        if (weaponData.Damage == null)
+        string? convarDamage = ConVarManager.GetWeaponDamage(weaponName);
+        string? damageModifier = convarDamage ?? weaponData.Damage;
+        
+        if (damageModifier == null)
             return;
 
         float oldDamage = info.Damage;
-        char operation = weaponData.Damage[0];
+        char operation = damageModifier[0];
 
-        if (int.TryParse(weaponData.Damage[1..], out int value))
+        if (int.TryParse(damageModifier[1..], out int value))
         {
             info.Damage = operation switch
             {
@@ -113,19 +116,21 @@ public static class Weapon
                 '-' => oldDamage - value,
                 '*' => oldDamage * value,
                 '/' => value != 0 ? oldDamage / value : oldDamage,
-                _ => int.TryParse(weaponData.Damage, out value) ? value : oldDamage
+                _ => int.TryParse(damageModifier, out value) ? value : oldDamage
             };
         }
     }
 
     public static bool IsRestricted(CCSPlayerController player, string weaponName, WeaponData weaponData, AcquireMethod acquireMethod)
     {
-        string[] flags = [.. weaponData.AdminFlagsToIgnoreBlockUsing];
+        string[] flags = [.. weaponData.AdminFlagsToIgnoreBlockPickup];
 
         if (flags.Length > 0 && !player.IsBot && AdminManager.PlayerHasPermissions(new SteamID(player.SteamID), flags))
             return false;
 
-        if (weaponData.BlockUsing == true && (weaponData.IgnorePickUpFromBlockUsing != false || acquireMethod != AcquireMethod.PickUp))
+        bool isBlocked = ConVarManager.IsWeaponPickupBlocked(weaponName) || (weaponData.BlockPickup == true);
+        
+        if (isBlocked && (weaponData.IgnorePickUpFromBlockPickup != false || acquireMethod != AcquireMethod.PickUp))
             return true;
 
         if (weaponData.WeaponQuota.Count > 0)

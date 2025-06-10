@@ -38,14 +38,16 @@ see `zbuy-example.toml`
 ### Weapon-specific ConVars
 For each weapon, the following ConVars are available (replace `<weapon>` with weapon name without "weapon_" prefix):
 
-- `zb_<weapon>_enabled [0|1]` - Enable/disable specific weapon
-- `zb_<weapon>_price <amount>` - Set weapon price
-- `zb_<weapon>_price_scale <value>` - Set price scaling factor
-- `zb_<weapon>_knockback <scale>` - Set knockback multiplier
-- `zb_<weapon>_damage <modifier>` - Set damage modifier
-- `zb_<weapon>_clip <amount>` - Set clip size
-- `zb_<weapon>_ammo <amount>` - Set ammo count
-- `zb_<weapon>_block [0|1]` - Block weapon usage
+**⚠️ Important: ConVar values take priority over config file settings for most weapon properties. However, the config `EnableBuyCommand` setting has higher priority than the weapon-specific ConVar.**
+
+- `zb_<weapon>_buy_enabled [0|1]` - Enable/disable weapon purchasing (only applies if config `EnableBuyCommand` is true)
+- `zb_<weapon>_price <amount>` - Set weapon price (overrides config `Price`)
+- `zb_<weapon>_price_scale <value>` - Set price scaling factor (overrides config `PriceScale`)
+- `zb_<weapon>_knockback <scale>` - Set knockback multiplier (overrides config `KnockbackScale`)
+- `zb_<weapon>_damage <modifier>` - Set damage modifier (overrides config `Damage`)
+- `zb_<weapon>_clip <amount>` - Set clip size (overrides config `Clip`)
+- `zb_<weapon>_ammo <amount>` - Set ammo count (overrides config `Ammo`)
+- `zb_<weapon>_block_pickup [0|1]` - Block weapon pickup and usage (overrides config `BlockPickup`)
 
 #### Available Weapons (without "weapon_" prefix):
 **Assault Rifles:**
@@ -106,9 +108,23 @@ For each weapon, the following ConVars are available (replace `<weapon>` with we
 - `decoy` - Decoy Grenade
 
 **Examples:**
-- `zb_ak47_price 3000` - Set AK47 price to $3000
-- `zb_awp_knockback 2.5` - Set AWP knockback scale to 2.5
-- `zb_glock_enabled 0` - Disable Glock purchases
+- `zb_ak47_price 3000` - Set AK47 price to $3000 (overrides config setting)
+- `zb_awp_knockback 2.5` - Set AWP knockback scale to 2.5 (overrides config setting)
+- `zb_glock_buy_enabled 0` - Disable Glock purchases (overrides config setting)
+- `zb_m4a1_block_pickup 1` - Block M4A4 pickup and usage (overrides config setting)
+
+### ConVar Priority System
+The plugin uses a priority system with different rules for different settings:
+
+**For weapon purchasing:**
+1. **Config `EnableBuyCommand`** (highest priority) - If false, weapon cannot be purchased regardless of ConVar
+2. **ConVar `zb_<weapon>_buy_enabled`** (secondary) - Only applies if config allows purchasing
+3. **Default value** (fallback) - Used if neither is set
+
+**For other weapon properties (price, damage, knockback, etc.):**
+1. **ConVar value** (highest priority) - If set, this value is used
+2. **Config file value** (fallback) - Used only if ConVar is not set
+3. **Default value** (lowest priority) - Used if neither ConVar nor config is set
 
 # Special Thanks
 

@@ -14,19 +14,19 @@ public static class ConVarManager
     
     public class WeaponConVarSet
     {
-        public FakeConVar<bool>? Enabled { get; set; }
+        public FakeConVar<bool>? BuyEnabled { get; set; }
         public FakeConVar<int>? Price { get; set; }
         public FakeConVar<float>? PriceScale { get; set; }
         public FakeConVar<float>? KnockbackScale { get; set; }
         public FakeConVar<string>? Damage { get; set; }
         public FakeConVar<int>? Clip { get; set; }
         public FakeConVar<int>? Ammo { get; set; }
-        public FakeConVar<bool>? BlockUsing { get; set; }
+        public FakeConVar<bool>? BlockPickup { get; set; }
     }
     
     public static void Initialize()
     {
-        EnableBuyCommands = new FakeConVar<bool>("zb_enable_buy_commands", "Enable/disable buy commands", true);
+        EnableBuyCommands = new FakeConVar<bool>("zb_enable_buy_commands", "Enable/disable buy commands", false);
         EnableKnockback = new FakeConVar<bool>("zb_enable_knockback", "Enable/disable knockback system", false);
         
         EnableBuyCommands.ValueChanged += OnBuyCommandsChanged;
@@ -43,7 +43,7 @@ public static class ConVarManager
         string cleanName = weaponName.Replace("weapon_", "");
         var convars = new WeaponConVarSet();
         
-        convars.Enabled = new FakeConVar<bool>($"zb_{cleanName}_enabled", $"Enable/disable {cleanName}", true);
+        convars.BuyEnabled = new FakeConVar<bool>($"zb_{cleanName}_buy_enabled", $"Enable/disable buying {cleanName}", false);
         
         if (weaponData.Price.HasValue)
         {
@@ -75,19 +75,19 @@ public static class ConVarManager
             convars.Ammo = new FakeConVar<int>($"zb_{cleanName}_ammo", $"Ammo count for {cleanName}", weaponData.Ammo.Value);
         }
         
-        if (weaponData.BlockUsing.HasValue)
+        if (weaponData.BlockPickup.HasValue)
         {
-            convars.BlockUsing = new FakeConVar<bool>($"zb_{cleanName}_block", $"Block usage of {cleanName}", weaponData.BlockUsing.Value);
+            convars.BlockPickup = new FakeConVar<bool>($"zb_{cleanName}_block_pickup", $"Block pickup and usage of {cleanName}", weaponData.BlockPickup.Value);
         }
         
         WeaponConVarSets[weaponName] = convars;
     }
     
-    public static bool IsWeaponEnabled(string weaponName)
+    public static bool IsWeaponBuyEnabled(string weaponName)
     {
-        if (WeaponConVarSets.TryGetValue(weaponName, out var convars) && convars.Enabled != null)
+        if (WeaponConVarSets.TryGetValue(weaponName, out var convars) && convars.BuyEnabled != null)
         {
-            return convars.Enabled.Value;
+            return convars.BuyEnabled.Value;
         }
         return true;
     }
@@ -128,13 +128,31 @@ public static class ConVarManager
         return null;
     }
     
-    public static bool IsWeaponBlocked(string weaponName)
+    public static bool IsWeaponPickupBlocked(string weaponName)
     {
-        if (WeaponConVarSets.TryGetValue(weaponName, out var convars) && convars.BlockUsing != null)
+        if (WeaponConVarSets.TryGetValue(weaponName, out var convars) && convars.BlockPickup != null)
         {
-            return convars.BlockUsing.Value;
+            return convars.BlockPickup.Value;
         }
         return false;
+    }
+    
+    public static int? GetWeaponClip(string weaponName)
+    {
+        if (WeaponConVarSets.TryGetValue(weaponName, out var convars) && convars.Clip != null)
+        {
+            return convars.Clip.Value;
+        }
+        return null;
+    }
+    
+    public static int? GetWeaponAmmo(string weaponName)
+    {
+        if (WeaponConVarSets.TryGetValue(weaponName, out var convars) && convars.Ammo != null)
+        {
+            return convars.Ammo.Value;
+        }
+        return null;
     }
     
     private static void OnBuyCommandsChanged(object? sender, bool newValue)

@@ -5,6 +5,7 @@ using CounterStrikeSharp.API.Core.Translations;
 using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 using CounterStrikeSharp.API.Modules.Utils;
+using CounterStrikeSharp.API.Modules.Entities.Constants;
 using static Zbuy.Config;
 using static Zbuy.Weapon;
 using static CounterStrikeSharp.API.Core.Listeners;
@@ -26,6 +27,9 @@ public class Zbuy : BasePlugin, IPluginConfig<Config>
 
         VirtualFunctions.CBaseEntity_TakeDamageOldFunc.Hook(OnTakeDamage, HookMode.Pre);
         VirtualFunctions.CCSPlayer_ItemServices_CanAcquireFunc.Hook(OnWeaponCanAcquire, HookMode.Pre);
+        
+        RegisterEventHandler<EventItemPurchase>(OnItemPurchase);
+        RegisterEventHandler<EventItemPickup>(OnItemPickup);
         
         ConVarManager.Initialize();
         BuySystem.RegisterCommands();
@@ -111,11 +115,15 @@ public class Zbuy : BasePlugin, IPluginConfig<Config>
         if (entity.As<CCSWeaponBase>().VData is not CCSWeaponBaseVData weaponVData)
             return;
 
-        if (weaponData.Clip.HasValue)
-            weaponVData.MaxClip1 = weaponData.Clip.Value;
+        int? convarClip = ConVarManager.GetWeaponClip(GetDesignerName(entity.As<CBasePlayerWeapon>()));
+        int? clipValue = convarClip ?? weaponData.Clip;
+        if (clipValue.HasValue)
+            weaponVData.MaxClip1 = clipValue.Value;
 
-        if (weaponData.Ammo.HasValue)
-            weaponVData.PrimaryReserveAmmoMax = weaponData.Ammo.Value;
+        int? convarAmmo = ConVarManager.GetWeaponAmmo(GetDesignerName(entity.As<CBasePlayerWeapon>()));
+        int? ammoValue = convarAmmo ?? weaponData.Ammo;
+        if (ammoValue.HasValue)
+            weaponVData.PrimaryReserveAmmoMax = ammoValue.Value;
     }
 
     [ListenerHandler<OnEntityCreated>]
@@ -173,9 +181,12 @@ public class Zbuy : BasePlugin, IPluginConfig<Config>
         if (weaponData.OnlyHeadshot == true && info.GetHitGroup() != HitGroup_t.HITGROUP_HEAD)
             return HookResult.Handled;
 
-        SetDamage(info, weaponData);
+        SetDamage(info, weaponData, weaponName);
         
-        if (Config.EnableKnockback && weaponData.KnockbackScale.HasValue && weaponData.KnockbackScale.Value > 0)
+        float? convarKnockbackScale = ConVarManager.GetWeaponKnockbackScale(weaponName);
+        float knockbackScale = convarKnockbackScale ?? weaponData.KnockbackScale ?? 0f;
+        
+        if (Config.EnableKnockback && knockbackScale > 0)
         {
             var victim = hook.GetParam<CEntityInstance>(0).As<CCSPlayerController>();
             var attacker = info.Attacker.Value?.As<CCSPlayerController>();
@@ -209,5 +220,108 @@ public class Zbuy : BasePlugin, IPluginConfig<Config>
 
         hook.SetReturn(AcquireResult.NotAllowedByProhibition);
         return HookResult.Handled;
+    }
+
+    [GameEventHandler(mode: HookMode.Pre)]
+    public HookResult OnItemPurchase(EventItemPurchase @event, GameEventInfo info)
+    {
+        if (@event.Userid is not { } player)
+            return HookResult.Continue;
+
+        string weaponName = @event.Weapon;
+
+        if (!Config.WeaponDatas.TryGetValue(weaponName, out WeaponData? weaponData))
+            return HookResult.Continue;
+
+        if (!IsRestricted(player, weaponName, weaponData, AcquireMethod.Buy))
+            return HookResult.Continue;
+
+        if (!player.IsBot)
+        {
+            Instance.Localizer.ForPlayer(player, "You cannot use this weapon", weaponName);
+        }
+
+        return HookResult.Handled;
+    }
+
+    [GameEventHandler(mode: HookMode.Pre)]
+    public HookResult OnItemPickup(EventItemPickup @event, GameEventInfo info)
+    {
+        if (@event.Userid is not { } player)
+            return HookResult.Continue;
+
+        string weaponName = GetWeaponNameFromDefIndex(@event.Defindex);
+        if (string.IsNullOrEmpty(weaponName))
+            return HookResult.Continue;
+
+        if (!Config.WeaponDatas.TryGetValue(weaponName, out WeaponData? weaponData))
+            return HookResult.Continue;
+
+        if (!IsRestricted(player, weaponName, weaponData, AcquireMethod.PickUp))
+            return HookResult.Continue;
+
+        Server.NextFrame(() =>
+        {
+            if (player.PlayerPawn.Value?.WeaponServices == null)
+                return;
+
+            foreach (var weapon in player.PlayerPawn.Value.WeaponServices.MyWeapons)
+            {
+                if (weapon is not { IsValid: true, Value.IsValid: true })
+                    continue;
+                
+                if (weapon.Value.AttributeManager.Item.ItemDefinitionIndex != @event.Defindex)
+                    continue;
+
+                int remainingCount = GetGrenadeCount(player, @event.Defindex);
+                
+                weapon.Value.Remove();
+
+                if (remainingCount > 1)
+                {
+                    for (int i = 0; i < remainingCount - 1; i++)
+                    {
+                        player.GiveNamedItem(weaponName);
+                    }
+                }
+
+                break;
+            }
+
+            if (!player.IsBot)
+            {
+                Instance.Localizer.ForPlayer(player, "You cannot use this weapon", weaponName);
+            }
+
+            player.ExecuteClientCommand("lastinv");
+        });
+
+        return HookResult.Continue;
+    }
+
+    private string GetWeaponNameFromDefIndex(long defIndex)
+    {
+        foreach (var kvp in Config.WeaponDatas)
+        {
+            if (DefIndex(kvp.Key) == defIndex)
+                return kvp.Key;
+        }
+        return string.Empty;
+    }
+
+    private int GetGrenadeCount(CCSPlayerController player, long defIndex)
+    {
+        if (player.PlayerPawn.Value?.WeaponServices == null)
+            return 0;
+
+        return defIndex switch
+        {
+            (long)ItemDefinition.FLASHBANG => player.PlayerPawn.Value.WeaponServices.Ammo[14],
+            (long)ItemDefinition.HIGH_EXPLOSIVE_GRENADE or (long)ItemDefinition.FRAG_GRENADE => player.PlayerPawn.Value.WeaponServices.Ammo[13],
+            (long)ItemDefinition.DECOY_GRENADE => player.PlayerPawn.Value.WeaponServices.Ammo[17],
+            (long)ItemDefinition.SMOKE_GRENADE => player.PlayerPawn.Value.WeaponServices.Ammo[15],
+            (long)ItemDefinition.MOLOTOV or (long)ItemDefinition.INCENDIARY_GRENADE => player.PlayerPawn.Value.WeaponServices.Ammo[16],
+            _ => 1
+        };
     }
 }
