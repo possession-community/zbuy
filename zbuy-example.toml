@@ -1,48 +1,28 @@
-# Global Buy and Knockback system settings
-# NOTE: These can be overridden by ConVars (zb_enable_buy_commands, zb_enable_knockback)
-EnableBuyCommands = false
-EnableKnockback = false
+# Global Buy system settings
+EnableBuyCommands = true
+WeaponBuyZoneOnly = false                              # If true, players can only buy weapons in buy zones
+AllowedTeamsToBuy = ["CounterTerrorist", "Terrorist"]  # Teams allowed to buy weapons
 
-# Supported datas
-# ⚠️ IMPORTANT: ConVar values take priority over config file settings!
-# If a ConVar is set, it will override the corresponding value in this config file.
+# Supported weapon data properties
+# [WeaponDatas."weapon_name"]
+# EnableBuyCommand              - Enable/disable buy commands for this weapon
+# BuyAliases                    - Alternative names for buy commands (e.g., ["ak", "ak47", "kalash"])
+# Clip                          - Sets weapon clip size
+# Ammo                          - Sets weapon ammo count
+# UnlimitedAmmo                 - Enables unlimited ammo (true/false)
+# UnlimitedClip                 - Enables unlimited clip (true/false)
 
-# EnableBuyCommands             - Enable/disable the buy command system
-# EnableKnockback               - Enable/disable the knockback system
-
-# [["weapon_name"]]
-# Clip                          - Sets weapon clip (ConVar: zb_<weapon>_clip)
-# Ammo                          - Sets weapon ammo (ConVar: zb_<weapon>_ammo)
-# BlockPickup                   - Block weapon usage (ConVar: zb_<weapon>_block_pickup)
-# IgnorePickUpFromBlockPickup   - Allows picking up the weapon even if usage is blocked
-# ReloadAfterShoot              - Automatically reloads after each shot
-# UnlimitedAmmo                 - Enables unlimited ammo
-# UnlimitedClip                 - Enables unlimited clip
-# OnlyHeadshot                  - Restricts damage to headshots only
-# ViewModel                     - The model path displayed from the player's perspective
-# WorldModel                    - The model path displayed in the world
-# AdminFlagsToIgnoreBlockPickup - Admin flags that bypass usage restrictions
-# WeaponQuota                   - Defines weapon limits { playercount: allowed amount }
-#                                 { 0 = 1, 5 = 2, 10 = 3, 16 = 4, 32 = 5 } 0-4 => 1, 5-9 => 3, 10-15 => 4, 16-31 => 4, 32-. => 5
-# Damage                        - The weapon's damage value or calculation formula (ConVar: zb_<weapon>_damage)
-#                                 Allowed (=,+,-,/,*)
-
-# Price                         - Base price for the weapon (ConVar: zb_<weapon>_price)
-# PriceScale                    - Price scaling factor for multiple purchases (ConVar: zb_<weapon>_price_scale)
+# Price                         - Base price for the weapon (if not set, defaults to game price)
+# PriceScale                    - Price scaling factor for multiple purchases
 # PriceScaleMultiplicative      - If true: price *= scale^count, if false: price += (price * scale * count)
 #                                 e.g., PriceScaleMultiplicative = true, Price = 1000, PriceScale = 1.2
 #                                 1st purchase: 1000, 2nd purchase: 1200, 3rd purchase: 1440, etc.
 #                                 e.g., PriceScaleMultiplicative = false, Price = 1000, PriceScale = 0.2
 #                                 1st purchase: 1000, 2nd purchase: 1200, 3rd purchase: 1400, etc.
-# EnableBuyCommand              - Enable/disable buy commands for this weapon (ConVar: zb_<weapon>_buy_enabled)
-# BuyAliases                    - Alternative names for buy commands (e.g., ["ak", "ak47", "kalash"])
-
-# KnockbackScale                - Knockback multiplier for this weapon (ConVar: zb_<weapon>_knockback)
-#                                 0 = no knockback, higher = more knockback
 
 [WeaponDatas]
 
-# Pistol
+# Pistols
 [WeaponDatas.weapon_glock]
 EnableBuyCommand = true
 
@@ -72,16 +52,20 @@ BuyAliases = ["cz"]
 EnableBuyCommand = true
 
 [WeaponDatas.weapon_revolver]
-EnableBuyCommand = true
+EnableBuyCommand = false
 BuyAliases = ["r8"]
 
-# SMG
+# SMGs (Submachine Guns)
 [WeaponDatas.weapon_mac10]
 EnableBuyCommand = true
 BuyAliases = ["mac"]
 
 [WeaponDatas.weapon_mp9]
 EnableBuyCommand = true
+
+[WeaponDatas.weapon_mp5sd]
+EnableBuyCommand = true
+BuyAliases = ["mp5"]
 
 [WeaponDatas.weapon_mp7]
 EnableBuyCommand = true
@@ -95,9 +79,8 @@ EnableBuyCommand = true
 
 [WeaponDatas.weapon_p90]
 EnableBuyCommand = true
-BuyAliases = ["p90"]
 
-# Shotgun
+# Shotguns
 [WeaponDatas.weapon_nova]
 EnableBuyCommand = true
 
@@ -112,7 +95,7 @@ BuyAliases = ["sawed"]
 [WeaponDatas.weapon_mag7]
 EnableBuyCommand = true
 
-# Rifles
+# Assault Rifles
 [WeaponDatas.weapon_famas]
 EnableBuyCommand = true
 
@@ -126,7 +109,7 @@ BuyAliases = ["m4a4", "m4", "a4"]
 
 [WeaponDatas.weapon_m4a1_silencer]
 EnableBuyCommand = true
-BuyAliases = ["m4a1s", "m4s", "1s"]
+BuyAliases = ["m4a1s", "m4s", "a1", "1s"]
 
 [WeaponDatas.weapon_ak47]
 EnableBuyCommand = true
@@ -146,7 +129,6 @@ BuyAliases = ["scout", "ssg"]
 
 [WeaponDatas.weapon_awp]
 EnableBuyCommand = true
-BuyAliases = ["awp"]
 
 [WeaponDatas.weapon_g3sg1]
 EnableBuyCommand = true
@@ -161,7 +143,7 @@ BuyAliases = ["scar"]
 EnableBuyCommand = true
 
 [WeaponDatas.weapon_negev]
-EnableBuyCommand = true
+EnableBuyCommand = false
 
 # Knife
 [WeaponDatas.weapon_knife]
@@ -190,6 +172,11 @@ EnableBuyCommand = true
 [WeaponDatas.weapon_decoy]
 EnableBuyCommand = false
 
-# Others
-[WeaponDatas.weapon_taser ]
+# Equipment
+[WeaponDatas.weapon_taser]
 EnableBuyCommand = false
+BuyAliases = ["zeus", "taser"]
+
+[WeaponDatas.item_kevlar]
+EnableBuyCommand = true
+BuyAliases = ["kev", "kevlar", "armor", "vest"]

@@ -1,10 +1,8 @@
 # Zbuy
 
-zbuy is a weapon purchasing and management plugin based on [schwarper/cs2-advanced-weapon-system](https://github.com/schwarper/cs2-advanced-weapon-system).
+zbuy is a weapon purchasing and management weapon's ammo/clip + some misc settings plugins.
 
-All AWS features are retained, with new features such as purchase commands, pricing, knockbacks, and ConVar.
-
-This is a plugin mainly for the zombie escape mode, but since the buy command and knockback function can be turned off, it can also be used as AWS as is.
+This is a plugin mainly for the zombie escape mode.
 
 # Installation
 1. Download the plugin:
@@ -18,9 +16,12 @@ This is a plugin mainly for the zombie escape mode, but since the buy command an
     * Send the command **`css_plugins load zbuy`** from the server ***(Load)***
     * Send the command **`css_plugins reload zbuy`** from the server ***(Reload)***
 
-# Configulation
+# Configuration
 
-see `zbuy-example.toml`
+See `zbuy-example.toml` for configuration details.
+
+## Configuration File Location
+Place the plugin configuration file at **`addons/counterstrikesharp/configs/plugins/zbuy/zbuy.toml`**.
 
 # Available Commands
 
@@ -31,23 +32,10 @@ see `zbuy-example.toml`
   -  Player can buy the any weapon on chat, like a `!usp`, `!buy usp`
   - Weapon aliases also work (e.g., `css_kalash` for AK47, `css_pistol` for Glock)
 
-## Server ConVars
-- `zb_enable_buy_commands [0|1]` - Enable/disable buy command system
-- `zb_enable_knockback [0|1]` - Enable/disable knockback system
-
-### Weapon-specific ConVars
-For each weapon, the following ConVars are available (replace `<weapon>` with weapon name without "weapon_" prefix):
-
-**⚠️ Important: ConVar values take priority over config file settings for most weapon properties. However, the config `EnableBuyCommand` setting has higher priority than the weapon-specific ConVar.**
-
-- `zb_<weapon>_buy_enabled [0|1]` - Enable/disable weapon purchasing (only applies if config `EnableBuyCommand` is true)
-- `zb_<weapon>_price <amount>` - Set weapon price (overrides config `Price`)
-- `zb_<weapon>_price_scale <value>` - Set price scaling factor (overrides config `PriceScale`)
-- `zb_<weapon>_knockback <scale>` - Set knockback multiplier (overrides config `KnockbackScale`)
-- `zb_<weapon>_damage <modifier>` - Set damage modifier (overrides config `Damage`)
-- `zb_<weapon>_clip <amount>` - Set clip size (overrides config `Clip`)
-- `zb_<weapon>_ammo <amount>` - Set ammo count (overrides config `Ammo`)
-- `zb_<weapon>_block_pickup [0|1]` - Block weapon pickup and usage (overrides config `BlockPickup`)
+## Admin Commands
+- `css_zb_enabled <0/1>` - Enable/disable the entire ZBuy system (requires admin permissions)
+- `css_zb_restrict <weapon_name>` - Restrict purchasing of specified weapon (requires admin permissions)
+- `css_zb_unrestrict <weapon_name>` - Remove purchase restriction from specified weapon (requires admin permissions)
 
 #### Available Weapons (without "weapon_" prefix):
 **Assault Rifles:**
@@ -98,6 +86,7 @@ For each weapon, the following ConVars are available (replace `<weapon>` with we
 
 **Equipment:**
 - `taser` - Zeus x27
+- `kevlar` - Kevlar
 
 **Grenades:**
 - `hegrenade` - HE Grenade
@@ -107,25 +96,6 @@ For each weapon, the following ConVars are available (replace `<weapon>` with we
 - `flashbang` - Flashbang
 - `decoy` - Decoy Grenade
 
-**Examples:**
-- `zb_ak47_price 3000` - Set AK47 price to $3000 (overrides config setting)
-- `zb_awp_knockback 2.5` - Set AWP knockback scale to 2.5 (overrides config setting)
-- `zb_glock_buy_enabled 0` - Disable Glock purchases (overrides config setting)
-- `zb_m4a1_block_pickup 1` - Block M4A4 pickup and usage (overrides config setting)
-
-### ConVar Priority System
-The plugin uses a priority system with different rules for different settings:
-
-**For weapon purchasing:**
-1. **Config `EnableBuyCommand`** (highest priority) - If false, weapon cannot be purchased regardless of ConVar
-2. **ConVar `zb_<weapon>_buy_enabled`** (secondary) - Only applies if config allows purchasing
-3. **Default value** (fallback) - Used if neither is set
-
-**For other weapon properties (price, damage, knockback, etc.):**
-1. **ConVar value** (highest priority) - If set, this value is used
-2. **Config file value** (fallback) - Used only if ConVar is not set
-3. **Default value** (lowest priority) - Used if neither ConVar nor config is set
-
 # Special Thanks
 
-- original plugin: [schwarper/cs2-advanced-weapon-system](https://github.com/schwarper/cs2-advanced-weapon-system)
+- reference: [schwarper/cs2-advanced-weapon-system](https://github.com/schwarper/cs2-advanced-weapon-system)

@@ -1,5 +1,6 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Utils;
 using static Zbuy.Config;
@@ -16,9 +17,6 @@ public static class BuySystem
 
         foreach (var weaponData in Zbuy.Instance.Config.WeaponDatas)
         {
-            if (weaponData.Value.EnableBuyCommand != true)
-                continue;
-
             string weaponName = weaponData.Key;
 
             string cleanName = weaponName.Replace("weapon_", "");
@@ -32,14 +30,14 @@ public static class BuySystem
             }
         }
     }
-    
+
     [CommandHelper(minArgs: 0, usage: "")]
     public static void OnBuyCommand(CCSPlayerController? player, CommandInfo commandInfo)
     {
         if (player == null || !player.IsValid)
             return;
             
-        if (!Zbuy.Instance.Config.EnableBuyCommands)
+        if (!WeaponRestrictionManager.IsZbuyEnabled())
         {
             player.PrintToChat($" {ChatColors.Red}[ZBuy] {Zbuy.Instance.Localizer["Buy commands are disabled"]}");
             return;
@@ -63,7 +61,7 @@ public static class BuySystem
         if (player == null || !player.IsValid)
             return;
             
-        if (!Zbuy.Instance.Config.EnableBuyCommands)
+        if (!WeaponRestrictionManager.IsZbuyEnabled())
         {
             player.PrintToChat($" {ChatColors.Red}[ZBuy] {Zbuy.Instance.Localizer["Buy commands are disabled"]}");
             return;
@@ -81,6 +79,7 @@ public static class BuySystem
         BuyWeapon(player, foundWeaponName);
     }
     
+    
     private static void BuyWeapon(CCSPlayerController player, string weaponName)
     {
         if (!Zbuy.Instance.Config.WeaponDatas.TryGetValue(weaponName, out WeaponData? weaponData))
@@ -89,7 +88,7 @@ public static class BuySystem
             return;
         }
 
-        if (!ConVarManager.IsWeaponBuyEnabled(weaponName))
+        if (!WeaponRestrictionManager.IsWeaponBuyEnabled(weaponName))
         {
             player.PrintToChat($" {ChatColors.Red}[ZBuy] {Zbuy.Instance.Localizer["This weapon cannot be purchased"]}");
             return;
@@ -101,11 +100,24 @@ public static class BuySystem
             return;
         }
         
-        if (player.PlayerPawn.Value?.LifeState != (byte)LifeState_t.LIFE_ALIVE)
+        if (!Utils.IsPlayerAlive(player))
         {
             player.PrintToChat($" {ChatColors.Red}[ZBuy] {Zbuy.Instance.Localizer["You must be alive to buy weapons"]}");
             return;
         }
+
+        if (!Zbuy.Instance.Config.AllowedTeamsToBuy.Contains(player.Team))
+        {
+            player.PrintToChat($" {ChatColors.Red}[ZBuy] {Zbuy.Instance.Localizer["Your team cannot buy weapons"]}");
+            return;
+        }
+
+        if (Zbuy.Instance.Config.WeaponBuyZoneOnly && !Utils.IsClientInBuyZone(player))
+        {
+            player.PrintToChat($" {ChatColors.Red}[ZBuy] {Zbuy.Instance.Localizer["You must be in buy zone to purchase weapons"]}");
+            return;
+        }
+
         
         int price = CalculateWeaponPrice(player, weaponName, weaponData);
         
@@ -114,46 +126,39 @@ public static class BuySystem
             player.PrintToChat($" {ChatColors.Red}[ZBuy] {Zbuy.Instance.Localizer["Insufficient funds", price, player.InGameMoneyServices.Account]}");
             return;
         }
+
+        var weaponToDrop = GetWeaponToDropBySlot(player, weaponName);
         
-        player.GiveNamedItem(weaponName);
-        
-        player.InGameMoneyServices!.Account -= price;
-        Utilities.SetStateChanged(player, "CCSPlayerController", "m_pInGameMoneyServices");
-        
-        UpdatePurchaseCount(player, weaponName);
-        
-        string cleanName = weaponName.Replace("weapon_", "");
-        player.PrintToChat($" {ChatColors.Green}[ZBuy] {Zbuy.Instance.Localizer["Purchased weapon", cleanName, price]}");
-    }
-    
-    private static int CalculateWeaponPrice(CCSPlayerController player, string weaponName, WeaponData weaponData)
-    {
-        int? convarPrice = ConVarManager.GetWeaponPrice(weaponName);
-        if (convarPrice.HasValue)
+        Server.NextFrame(() =>
         {
-            int convarBasePrice = convarPrice.Value;
-            int convarPurchaseCount = GetPurchaseCount(player, weaponName);
-            
-            if (convarPurchaseCount == 0)
-                return convarBasePrice;
-                
-            float? convarPriceScale = ConVarManager.GetWeaponPriceScale(weaponName);
-            float convarScale = convarPriceScale ?? weaponData.PriceScale ?? 1.0f;
-            
-            if (weaponData.PriceScaleMultiplicative == true)
+            if (!string.IsNullOrEmpty(weaponToDrop))
             {
-                return (int)(convarBasePrice * Math.Pow(convarScale, convarPurchaseCount));
+                Utils.DropWeaponByDesignName(player, weaponToDrop);
+            }
+
+            if (weaponName == "item_kevlar")
+            {
+                player.PlayerPawn.Value!.ArmorValue = 100;
+                Utilities.SetStateChanged(player.PlayerPawn.Value, "CCSPlayerPawn", "m_ArmorValue");
             }
             else
             {
-                return (int)(convarBasePrice + (convarBasePrice * convarScale * convarPurchaseCount));
+                player.GiveNamedItem(weaponName);
             }
-        }
-        
-        if (!weaponData.Price.HasValue)
-            return 0;
             
-        int basePrice = weaponData.Price.Value;
+            player.InGameMoneyServices!.Account -= price;
+            Utilities.SetStateChanged(player, "CCSPlayerController", "m_pInGameMoneyServices");
+            
+            UpdatePurchaseCount(player, weaponName);
+            
+            string cleanName = weaponName.Replace("weapon_", "").Replace("item_", "");
+            player.PrintToChat($" {ChatColors.Green}[ZBuy] {Zbuy.Instance.Localizer["Purchased weapon", cleanName, price]}");
+        });
+    }
+
+    private static int CalculateWeaponPrice(CCSPlayerController player, string weaponName, WeaponData weaponData)
+    {
+        int basePrice = weaponData.Price ?? WeaponMetadata.GetDefaultPrice(weaponName);
         int purchaseCount = GetPurchaseCount(player, weaponName);
         
         if (purchaseCount == 0 || !weaponData.PriceScale.HasValue)
@@ -209,7 +214,7 @@ public static class BuySystem
         foreach (var weaponData in Zbuy.Instance.Config.WeaponDatas)
         {
             string weaponName = weaponData.Key;
-            string cleanWeaponName = weaponName.Replace("weapon_", "");
+            string cleanWeaponName = weaponName.Replace("weapon_", "").ToLower();
             
             if (cleanCommand == cleanWeaponName)
                 return weaponName;
@@ -231,9 +236,9 @@ public static class BuySystem
         foreach (var weaponData in Zbuy.Instance.Config.WeaponDatas)
         {
             string weaponName = weaponData.Key;
-            string cleanWeaponName = weaponName.Replace("weapon_", "");
+            string cleanWeaponName = weaponName.Replace("weapon_", "").ToLower();
             
-            if (alias == cleanWeaponName.ToLower())
+            if (alias == cleanWeaponName)
                 return weaponName;
                 
             foreach (string weaponAlias in weaponData.Value.BuyAliases)
@@ -243,6 +248,31 @@ public static class BuySystem
             }
         }
         
+        return string.Empty;
+    }
+    
+    private static string GetWeaponToDropBySlot(CCSPlayerController player, string newWeaponName)
+    {
+        if (player.PlayerPawn.Value?.WeaponServices?.MyWeapons == null)
+            return string.Empty;
+
+        int newWeaponSlot = Utils.GetWeaponSlot(newWeaponName);
+        if (newWeaponSlot == -1 || newWeaponSlot > 2)
+            return string.Empty;
+
+        foreach (var weapon in player.PlayerPawn.Value.WeaponServices.MyWeapons)
+        {
+            if (weapon.Value == null || !weapon.Value.IsValid)
+                continue;
+
+            int currentWeaponSlot = Utils.GetWeaponSlot(weapon.Value.DesignerName);
+            
+            if (currentWeaponSlot == newWeaponSlot)
+            {
+                return weapon.Value.DesignerName;
+            }
+        }
+
         return string.Empty;
     }
 }

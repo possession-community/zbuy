@@ -1,30 +1,23 @@
 using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Modules.Utils;
 
 namespace Zbuy;
 
 public class Config : BasePluginConfig
 {
-    public Dictionary<string, WeaponData> WeaponDatas { get; set; } = [];
+    public Dictionary<string, WeaponData> WeaponDatas { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     
     public bool EnableBuyCommands { get; set; } = true;
-    public bool EnableKnockback { get; set; } = false;
+    public bool WeaponBuyZoneOnly { get; set; } = false;
+    public List<CsTeam> AllowedTeamsToBuy { get; set; } = [CsTeam.CounterTerrorist, CsTeam.Terrorist];
 
     public class WeaponData
     {
         public string Weapon { get; set; } = string.Empty;
         public int? Clip { get; set; }
         public int? Ammo { get; set; }
-        public bool? BlockPickup { get; set; }
-        public bool? IgnorePickUpFromBlockPickup { get; set; }
-        public bool? ReloadAfterShoot { get; set; }
         public bool? UnlimitedAmmo { get; set; }
         public bool? UnlimitedClip { get; set; }
-        public bool? OnlyHeadshot { get; set; }
-        public string? ViewModel { get; set; }
-        public string? WorldModel { get; set; }
-        public List<string> AdminFlagsToIgnoreBlockPickup { get; set; } = [];
-        public Dictionary<int, int> WeaponQuota { get; set; } = [];
-        public string? Damage { get; set; }
         
         public int? Price { get; set; }
         public float? PriceScale { get; set; }
@@ -32,6 +25,5 @@ public class Config : BasePluginConfig
         public bool? EnableBuyCommand { get; set; } = true;
         public List<string> BuyAliases { get; set; } = [];
         
-        public float? KnockbackScale { get; set; } = 1.0f;
     }
 }

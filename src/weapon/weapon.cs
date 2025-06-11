@@ -1,23 +1,14 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Entities;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
-using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Utils;
-using System.Runtime.InteropServices;
 using static Zbuy.Config;
 
 namespace Zbuy;
 
 public static class Weapon
 {
-    public enum GlobalNameData
-    {
-        ViewModelDefault,
-        ViewModel,
-        WorldModel
-    }
 
     public static ushort DefIndex(string weaponName)
     {
@@ -39,165 +30,7 @@ public static class Weapon
         };
     }
 
-    public static string GetFromGlobalName(string globalName, GlobalNameData data)
-    {
-
-        string[] globalNameSplit = globalName.Split(',');
-
-        return data switch
-        {
-            GlobalNameData.ViewModelDefault => globalNameSplit[0],
-            GlobalNameData.ViewModel => globalNameSplit[1],
-            GlobalNameData.WorldModel => !string.IsNullOrEmpty(globalNameSplit[2]) ? globalNameSplit[2] : globalNameSplit[1],
-            _ => throw new NotImplementedException()
-        };
-    }
-
-    public static string GetViewModel(CCSPlayerController player)
-    {
-        return ViewModel(player)?.VMName ?? string.Empty;
-    }
-
-    public static void SetViewModel(CCSPlayerController player, string model)
-    {
-        ViewModel(player)?.SetModel(model);
-    }
-
-    public static void UpdateModel(CCSPlayerController player, CBasePlayerWeapon weapon, string model, string? worldModel, bool update)
-    {
-        weapon.Globalname = $"{GetViewModel(player)},{model},{worldModel}";
-        weapon.SetModel(!string.IsNullOrEmpty(worldModel) ? worldModel : model);
-
-        if (update)
-        {
-            SetViewModel(player, model);
-        }
-    }
-
-    private static CBaseViewModel? ViewModel(CCSPlayerController player)
-    {
-        nint? handle = player.PlayerPawn.Value?.ViewModelServices?.Handle;
-        if (handle == null || !handle.HasValue) return null;
-
-        CCSPlayer_ViewModelServices viewModelServices = new(handle.Value);
-        nint ptr = viewModelServices.Handle + Schema.GetSchemaOffset("CCSPlayer_ViewModelServices", "m_hViewModel");
-        Span<nint> viewModels = MemoryMarshal.CreateSpan(ref ptr, 3);
-
-        return new CHandle<CBaseViewModel>(viewModels[0]).Value;
-    }
-
-    public static CCSPlayerController? FindTargetFromWeapon(CBasePlayerWeapon weapon)
-    {
-        SteamID steamId = new(weapon.OriginalOwnerXuidLow);
-
-        CCSPlayerController? player = steamId.IsValid()
-                ? Utilities.GetPlayers().FirstOrDefault(p => p.IsValid && p.SteamID == steamId.SteamId64) ?? Utilities.GetPlayerFromSteamId(weapon.OriginalOwnerXuidLow)
-        : Utilities.GetPlayerFromIndex((int)weapon.OwnerEntity.Index) ?? Utilities.GetPlayerFromIndex((int)weapon.As<CCSWeaponBaseGun>().OwnerEntity.Value!.Index);
-
-        return !string.IsNullOrEmpty(player?.PlayerName) ? player : null;
-    }
-
-    public static void SetDamage(CTakeDamageInfo info, WeaponData weaponData, string weaponName)
-    {
-        string? convarDamage = ConVarManager.GetWeaponDamage(weaponName);
-        string? damageModifier = convarDamage ?? weaponData.Damage;
-        
-        if (damageModifier == null)
-            return;
-
-        float oldDamage = info.Damage;
-        char operation = damageModifier[0];
-
-        if (int.TryParse(damageModifier[1..], out int value))
-        {
-            info.Damage = operation switch
-            {
-                '+' => oldDamage + value,
-                '-' => oldDamage - value,
-                '*' => oldDamage * value,
-                '/' => value != 0 ? oldDamage / value : oldDamage,
-                _ => int.TryParse(damageModifier, out value) ? value : oldDamage
-            };
-        }
-    }
-
-    public static bool IsRestricted(CCSPlayerController player, string weaponName, WeaponData weaponData, AcquireMethod acquireMethod)
-    {
-        string[] flags = [.. weaponData.AdminFlagsToIgnoreBlockPickup];
-
-        if (flags.Length > 0 && !player.IsBot && AdminManager.PlayerHasPermissions(new SteamID(player.SteamID), flags))
-            return false;
-
-        bool isBlocked = ConVarManager.IsWeaponPickupBlocked(weaponName) || (weaponData.BlockPickup == true);
-        
-        if (isBlocked && (weaponData.IgnorePickUpFromBlockPickup != false || acquireMethod != AcquireMethod.PickUp))
-            return true;
-
-        if (weaponData.WeaponQuota.Count > 0)
-        {
-            ushort defIndex = DefIndex(weaponName);
-            List<CCSPlayerController> players = [.. Utilities.GetPlayers().Where(p => p.Team == player.Team)];
-            int playerCount = players.Count;
-
-            int maxWeapons = weaponData.WeaponQuota
-                .Where(kvp => playerCount >= kvp.Key)
-                .Select(kvp => kvp.Value)
-                .DefaultIfEmpty(0)
-                .Max();
-
-            int selector(CHandle<CBasePlayerWeapon> w)
-            {
-                return Count(defIndex, w, player);
-            }
-
-            int weaponsCount = Utilities.GetPlayers()
-                .Where(p => p.Team == player.Team)
-                .Sum(p => p.PlayerPawn.Value?.WeaponServices?.MyWeapons.Sum(selector) ?? 0);
-
-            return weaponsCount >= maxWeapons;
-        }
-
-        return false;
-    }
-
-    private static int Count(ushort defIndex, CHandle<CBasePlayerWeapon> weapon, CCSPlayerController player)
-    {
-        if (weapon.Value?.AttributeManager.Item.ItemDefinitionIndex is not ushort index || index != defIndex)
-            return 0;
-
-        if (player.PlayerPawn.Value?.WeaponServices is not CPlayer_WeaponServices weaponServices)
-            return 0;
-
-        int total = 0;
-
-        switch (index)
-        {
-            case (ushort)ItemDefinition.FRAG_GRENADE:
-            case (ushort)ItemDefinition.HIGH_EXPLOSIVE_GRENADE:
-                total += weaponServices.Ammo[13];
-                break;
-            case (ushort)ItemDefinition.FLASHBANG:
-                total += weaponServices.Ammo[14];
-                break;
-            case (ushort)ItemDefinition.SMOKE_GRENADE:
-                total += weaponServices.Ammo[15];
-                break;
-            case (ushort)ItemDefinition.MOLOTOV:
-            case (ushort)ItemDefinition.INCENDIARY_GRENADE:
-                total += weaponServices.Ammo[16];
-                break;
-            case (ushort)ItemDefinition.DECOY_GRENADE:
-                total += weaponServices.Ammo[17];
-                break;
-            default:
-                total++;
-                break;
-        }
-
-        return total;
-    }
-
-    private static readonly Dictionary<string, ushort> weaponsList = new()
+    private static readonly Dictionary<string, ushort> weaponsList = new(StringComparer.OrdinalIgnoreCase)
     {
         { "weapon_m4a1", (ushort)ItemDefinition.M4A4 },
         { "weapon_m4a1_silencer", (ushort)ItemDefinition.M4A1_S },
