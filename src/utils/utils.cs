@@ -28,13 +28,14 @@ public static class Utils
         return client.PlayerPawn.Value?.InBuyZone ?? false;
     }
 
-    public static void DropWeapon(CCSPlayer_WeaponServices services, CBasePlayerWeapon weapon)
+    public static void DropWeapon(CCSPlayer_WeaponServices services, CBasePlayerWeapon weapon, bool remove = false)
     {
         Guard.IsValidEntity(weapon);
         VirtualFunction.CreateVoid<nint, CBasePlayerWeapon, Vector?, Vector?>(services.Handle, GameData.GetOffset("CCSPlayer_WeaponServices_DropWeapon"))(services.Handle, weapon, null, null);
+        if (remove) weapon.Remove();
     }
 
-    public static void DropWeaponByDesignName(CCSPlayerController client, string weaponName)
+    public static void DropWeaponByDesignName(CCSPlayerController client, string weaponName, bool remove = false)
     {
         if (client == null)
             return;
@@ -47,7 +48,7 @@ public static class Utils
             if (matchedWeapon.Value == null)
                 return;
 
-            DropWeapon(service.As<CCSPlayer_WeaponServices>(), matchedWeapon.Value);
+            DropWeapon(service.As<CCSPlayer_WeaponServices>(), matchedWeapon.Value, remove);
         }
     }
 
@@ -91,5 +92,66 @@ public static class Utils
         }
 
         return -1;
+    }
+
+    public static string CleanWeaponName(string weaponName)
+    {
+        return weaponName.Replace("weapon_", "").Replace("item_", "");
+    }
+
+    public static string FindWeaponByAlias(string alias)
+    {
+        alias = alias.ToLower();
+
+        if (alias.StartsWith("weapon_"))
+        {
+            if (Zbuy.Instance.Config.WeaponDatas.ContainsKey(alias))
+                return alias;
+        }
+        else
+        {
+            string fullWeaponName = $"weapon_{alias}";
+            if (Zbuy.Instance.Config.WeaponDatas.ContainsKey(fullWeaponName))
+                return fullWeaponName;
+        }
+
+        foreach (var weaponData in Zbuy.Instance.Config.WeaponDatas)
+        {
+            string weaponName = weaponData.Key;
+            string cleanWeaponName = CleanWeaponName(weaponName).ToLower();
+
+            if (alias == cleanWeaponName)
+                return weaponName;
+
+            foreach (string weaponAlias in weaponData.Value.BuyAliases)
+            {
+                if (alias == weaponAlias.ToLower())
+                    return weaponName;
+            }
+        }
+
+        return string.Empty;
+    }
+
+    public static string ExtractWeaponNameFromCommand(string command)
+    {
+        string cleanCommand = command.Replace("css_", "").ToLower();
+
+        foreach (var weaponData in Zbuy.Instance.Config.WeaponDatas)
+        {
+            string weaponName = weaponData.Key;
+            string cleanWeaponName = CleanWeaponName(weaponName).ToLower();
+
+            if (cleanCommand == cleanWeaponName)
+                return weaponName;
+
+            foreach (string alias in weaponData.Value.BuyAliases)
+            {
+                if (cleanCommand == alias.ToLower())
+                    return weaponName;
+            }
+        }
+
+        return string.Empty;
     }
 }

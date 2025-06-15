@@ -9,6 +9,8 @@ namespace Zbuy;
 public static class WeaponRestrictionManager
 {
     private static readonly Dictionary<string, bool> WeaponRestrictions = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, int> WeaponRoundLimits = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<CCSPlayerController, Dictionary<string, int>> PlayerRoundPurchases = new();
     private static bool _zbuyEnabled = true;
 
     public static void Initialize()
@@ -18,6 +20,11 @@ public static class WeaponRestrictionManager
         foreach (var weaponData in Zbuy.Instance.Config.WeaponDatas)
         {
             WeaponRestrictions[weaponData.Key] = true;
+
+            if (weaponData.Value.MaxPurchasesPerRound.HasValue)
+            {
+                WeaponRoundLimits[weaponData.Key] = weaponData.Value.MaxPurchasesPerRound.Value;
+            }
         }
     }
 
@@ -45,11 +52,66 @@ public static class WeaponRestrictionManager
         WeaponRestrictions[weaponName] = enabled;
     }
 
+    public static bool CanPurchaseWeaponThisRound(CCSPlayerController player, string weaponName)
+    {
+        if (!WeaponRoundLimits.TryGetValue(weaponName, out int limit))
+            return true;
+
+        if (!PlayerRoundPurchases.TryGetValue(player, out var weaponCounts))
+            return true;
+
+        int currentCount = weaponCounts.TryGetValue(weaponName, out int count) ? count : 0;
+        return currentCount < limit;
+    }
+
+    public static void RecordWeaponPurchase(CCSPlayerController player, string weaponName)
+    {
+        if (!PlayerRoundPurchases.TryGetValue(player, out var weaponCounts))
+        {
+            weaponCounts = new Dictionary<string, int>();
+            PlayerRoundPurchases[player] = weaponCounts;
+        }
+
+        weaponCounts[weaponName] = weaponCounts.TryGetValue(weaponName, out int count) ? count + 1 : 1;
+    }
+
+    public static void ResetRoundPurchases()
+    {
+        PlayerRoundPurchases.Clear();
+    }
+
+    public static int GetWeaponRoundLimit(string weaponName)
+    {
+        return WeaponRoundLimits.TryGetValue(weaponName, out int limit) ? limit : -1;
+    }
+
+    public static void SetWeaponRoundLimit(string weaponName, int limit)
+    {
+        if (limit <= 0)
+        {
+            WeaponRoundLimits.Remove(weaponName);
+        }
+        else
+        {
+            WeaponRoundLimits[weaponName] = limit;
+        }
+    }
+
+    public static int GetPlayerRoundPurchaseCount(CCSPlayerController player, string weaponName)
+    {
+        if (!PlayerRoundPurchases.TryGetValue(player, out var weaponCounts))
+            return 0;
+
+        return weaponCounts.TryGetValue(weaponName, out int count) ? count : 0;
+    }
+
     public static void RegisterAdminCommands()
     {
         Zbuy.Instance.AddCommand("css_zb_enabled", "Enable/disable zbuy system", OnZbuyEnabledCommand);
         Zbuy.Instance.AddCommand("css_zb_restrict", "Restrict weapon buying", OnRestrictWeaponCommand);
         Zbuy.Instance.AddCommand("css_zb_unrestrict", "Unrestrict weapon buying", OnUnrestrictWeaponCommand);
+        Zbuy.Instance.AddCommand("css_zb_roundlimit", "Set weapon round purchase limit", OnSetRoundLimitCommand);
+        Zbuy.Instance.AddCommand("css_zb_resetround", "Reset round purchase counts", OnResetRoundCommand);
     }
 
     [CommandHelper(minArgs: 1, usage: "<0/1>")]
@@ -81,7 +143,6 @@ public static class WeaponRestrictionManager
 
         if (player != null)
         {
-            player.PrintToChat(chatMessage);
             Server.PrintToChatAll(chatMessage);
         }
         else
@@ -102,7 +163,7 @@ public static class WeaponRestrictionManager
         }
 
         string weaponArg = commandInfo.GetArg(1);
-        string weaponName = FindWeaponName(weaponArg);
+        string weaponName = Utils.FindWeaponByAlias(weaponArg);
 
         if (string.IsNullOrEmpty(weaponName))
         {
@@ -116,13 +177,12 @@ public static class WeaponRestrictionManager
 
         SetWeaponRestriction(weaponName, false);
 
-        string cleanName = weaponName.Replace("weapon_", "");
+        string cleanName = Utils.CleanWeaponName(weaponName);
         string statusMessage = $"Weapon '{cleanName}' has been restricted";
         string chatMessage = $" {ChatColors.Yellow}[ZBuy] {statusMessage}";
 
         if (player != null)
         {
-            player.PrintToChat(chatMessage);
             Server.PrintToChatAll(chatMessage);
         }
         else
@@ -143,7 +203,7 @@ public static class WeaponRestrictionManager
         }
 
         string weaponArg = commandInfo.GetArg(1);
-        string weaponName = FindWeaponName(weaponArg);
+        string weaponName = Utils.FindWeaponByAlias(weaponArg);
 
         if (string.IsNullOrEmpty(weaponName))
         {
@@ -157,13 +217,12 @@ public static class WeaponRestrictionManager
 
         SetWeaponRestriction(weaponName, true);
 
-        string cleanName = weaponName.Replace("weapon_", "");
+        string cleanName = Utils.CleanWeaponName(weaponName);
         string statusMessage = $"Weapon '{cleanName}' has been unrestricted";
         string chatMessage = $" {ChatColors.Green}[ZBuy] {statusMessage}";
 
         if (player != null)
         {
-            player.PrintToChat(chatMessage);
             Server.PrintToChatAll(chatMessage);
         }
         else
@@ -173,37 +232,82 @@ public static class WeaponRestrictionManager
         }
     }
 
-    private static string FindWeaponName(string weaponArg)
+    [CommandHelper(minArgs: 2, usage: "<weapon_name> <limit>")]
+    [RequiresPermissions("@css/generic")]
+    public static void OnSetRoundLimitCommand(CCSPlayerController? player, CommandInfo commandInfo)
     {
-        weaponArg = weaponArg.ToLower();
-
-        if (weaponArg.StartsWith("weapon_"))
+        if (player != null && !AdminManager.PlayerHasPermissions(player, "@css/generic"))
         {
-            if (Zbuy.Instance.Config.WeaponDatas.ContainsKey(weaponArg))
-                return weaponArg;
+            player.PrintToChat($" {ChatColors.Red}[ZBuy] You don't have permission to use this command.");
+            return;
+        }
+
+        string weaponArg = commandInfo.GetArg(1);
+        string limitArg = commandInfo.GetArg(2);
+
+        string weaponName = Utils.FindWeaponByAlias(weaponArg);
+        if (string.IsNullOrEmpty(weaponName))
+        {
+            string message = $"Unknown weapon: {weaponArg}";
+            if (player != null)
+                player.PrintToChat($" {ChatColors.Red}[ZBuy] {message}");
+            else
+                Server.PrintToConsole($"[ZBuy] {message}");
+            return;
+        }
+
+        if (!int.TryParse(limitArg, out int limit) || limit < 0)
+        {
+            string message = "Limit must be a non-negative integer (0 = no limit)";
+            if (player != null)
+                player.PrintToChat($" {ChatColors.Red}[ZBuy] {message}");
+            else
+                Server.PrintToConsole($"[ZBuy] {message}");
+            return;
+        }
+
+        SetWeaponRoundLimit(weaponName, limit);
+
+        string cleanName = Utils.CleanWeaponName(weaponName);
+        string statusMessage = limit == 0
+            ? $"Round limit removed for '{cleanName}'"
+            : $"Round limit set to {limit} for '{cleanName}'";
+        string chatMessage = $" {ChatColors.Green}[ZBuy] {statusMessage}";
+
+        if (player != null)
+        {
+            Server.PrintToChatAll(chatMessage);
         }
         else
         {
-            string fullWeaponName = $"weapon_{weaponArg}";
-            if (Zbuy.Instance.Config.WeaponDatas.ContainsKey(fullWeaponName))
-                return fullWeaponName;
+            Server.PrintToConsole($"[ZBuy] {statusMessage}");
+            Server.PrintToChatAll(chatMessage);
         }
+    }
 
-        foreach (var weaponData in Zbuy.Instance.Config.WeaponDatas)
+    [CommandHelper(minArgs: 0, usage: "")]
+    [RequiresPermissions("@css/generic")]
+    public static void OnResetRoundCommand(CCSPlayerController? player, CommandInfo commandInfo)
+    {
+        if (player != null && !AdminManager.PlayerHasPermissions(player, "@css/generic"))
         {
-            string weaponName = weaponData.Key;
-            string cleanWeaponName = weaponName.Replace("weapon_", "").ToLower();
-
-            if (weaponArg == cleanWeaponName)
-                return weaponName;
-
-            foreach (string alias in weaponData.Value.BuyAliases)
-            {
-                if (weaponArg == alias.ToLower())
-                    return weaponName;
-            }
+            player.PrintToChat($" {ChatColors.Red}[ZBuy] You don't have permission to use this command.");
+            return;
         }
 
-        return string.Empty;
+        ResetRoundPurchases();
+
+        string statusMessage = "Round purchase counts have been reset";
+        string chatMessage = $" {ChatColors.Green}[ZBuy] {statusMessage}";
+
+        if (player != null)
+        {
+            Server.PrintToChatAll(chatMessage);
+        }
+        else
+        {
+            Server.PrintToConsole($"[ZBuy] {statusMessage}");
+            Server.PrintToChatAll(chatMessage);
+        }
     }
 }

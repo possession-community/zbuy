@@ -23,6 +23,35 @@ See `zbuy-example.toml` for configuration details.
 ## Configuration File Location
 Place the plugin configuration file at **`addons/counterstrikesharp/configs/plugins/zbuy/zbuy.toml`**.
 
+## Round Purchase Limits
+You can set per-round purchase limits for weapons in the configuration file using the `MaxPurchasesPerRound` property:
+
+```toml
+[WeaponDatas.weapon_hegrenade]
+EnableBuyCommand = true
+BuyAliases = ["he", "hegrenade", "nade"]
+MaxPurchasesPerRound = 3  # Players can buy max 3 HE grenades per round
+```
+
+This feature is useful for limiting grenade spam or controlling weapon economy in game modes like Zombie Escape.
+
+# Buy Menu Integration
+
+ZBuy automatically intercepts and overrides the default CS2 buy menu functionality. When players use the in-game buy menu (B key), the plugin:
+
+1. **Blocks Default Purchases**: Prevents the default CS2 purchase system from processing transactions
+2. **Automatic Refund**: Refunds any money deducted by the default system
+3. **Weapon Removal**: Removes any weapons given by the default system
+4. **Custom Processing**: Processes the purchase through ZBuy's custom system with all configured features
+
+This ensures that all weapon purchases, whether through chat commands or the buy menu, use ZBuy's pricing, restrictions, and special features consistently.
+
+**Note**: Players can still use both methods to purchase weapons:
+- **Buy Menu (B key)**: Traditional in-game buy menu interface
+- **Chat Commands**: `!ak47`, `!buy ak47`, etc.
+
+Both methods will use ZBuy's configuration and pricing system.
+
 # Available Commands
 
 ## Player Commands
@@ -36,6 +65,8 @@ Place the plugin configuration file at **`addons/counterstrikesharp/configs/plug
 - `css_zb_enabled <0/1>` - Enable/disable the entire ZBuy system (requires admin permissions)
 - `css_zb_restrict <weapon_name>` - Restrict purchasing of specified weapon (requires admin permissions)
 - `css_zb_unrestrict <weapon_name>` - Remove purchase restriction from specified weapon (requires admin permissions)
+- `css_zb_roundlimit <weapon_name> <limit>` - Set round purchase limit for specified weapon (0 = no limit) (requires admin permissions)
+- `css_zb_resetround` - Reset all round purchase counts (requires admin permissions)
 
 #### Available Weapons (without "weapon_" prefix):
 **Assault Rifles:**

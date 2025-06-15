@@ -37,7 +37,7 @@ namespace Zbuy
                     DefIndex = (long)ItemDefinition.M4A4,
                     Name = "M4A1",
                     WeaponName = "weapon_m4a1",
-                    Price = 3100,
+                    Price = 2900,
                 },
                 new()
                 {
@@ -51,7 +51,7 @@ namespace Zbuy
                     DefIndex = (long)ItemDefinition.FAMAS,
                     Name = "Famas",
                     WeaponName = "weapon_famas",
-                    Price = 2050,
+                    Price = 1950,
                 },
                 new()
                 {
@@ -296,7 +296,7 @@ namespace Zbuy
                     DefIndex = (long)ItemDefinition.INCENDIARY_GRENADE,
                     Name = "Incendiary Grenade",
                     WeaponName = "weapon_incgrenade",
-                    Price = 600,
+                    Price = 500,
                 },
                 new()
                 {
@@ -322,9 +322,16 @@ namespace Zbuy
                 new()
                 {
                     DefIndex = (long)ItemDefinition.KEVLAR_VEST,
-                    Name = "Kevlar Vest",
+                    Name = "Kevlar Armor",
                     WeaponName = "item_kevlar",
                     Price = 650
+                },
+                new()
+                {
+                    DefIndex = (long)ItemDefinition.KEVLAR_AND_HELMET,
+                    Name = "Kevlar Armor and Helmet",
+                    WeaponName = "item_assaultsuit",
+                    Price = 1000
                 }
             };
         }

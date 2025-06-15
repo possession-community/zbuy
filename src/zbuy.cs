@@ -24,7 +24,7 @@ public class Zbuy : BasePlugin, IPluginConfig<Config>
 
         WeaponRestrictionManager.Initialize();
         WeaponRestrictionManager.RegisterAdminCommands();
-        
+
         BuySystem.RegisterCommands();
     }
 
@@ -35,6 +35,32 @@ public class Zbuy : BasePlugin, IPluginConfig<Config>
     public void OnConfigParsed(Config config)
     {
         Config = config;
+    }
+
+    [GameEventHandler(mode: HookMode.Pre)]
+    public HookResult OnEventItemPurchasePre(EventItemPurchase @event, GameEventInfo info)
+    {
+        var player = @event.Userid;
+        if (player == null || !player.IsValid || @event.Weapon == null || @event.Weapon == string.Empty)
+            return HookResult.Continue;
+
+        int refundAmount = GetGameWeaponPrice(@event.Weapon);
+        if (refundAmount > 0 && player.InGameMoneyServices != null)
+        {
+            player.InGameMoneyServices.Account += refundAmount;
+            Utilities.SetStateChanged(player, "CCSPlayerController", "m_pInGameMoneyServices");
+        }
+
+        Utils.DropWeaponByDesignName(player, @event.Weapon, true);
+
+        BuySystem.BuyWeapon(player, @event.Weapon);
+
+        return HookResult.Handled;
+    }
+
+    private int GetGameWeaponPrice(string weaponName)
+    {
+        return WeaponMetadata.GetDefaultPrice(weaponName);
     }
 
     [GameEventHandler]
@@ -52,7 +78,6 @@ public class Zbuy : BasePlugin, IPluginConfig<Config>
         if (weaponData.UnlimitedAmmo == true)
             activeWeapon.ReserveAmmo[0] += 1;
 
-
         return HookResult.Continue;
     }
 
@@ -60,6 +85,27 @@ public class Zbuy : BasePlugin, IPluginConfig<Config>
     public HookResult OnRoundStart(EventRoundStart @event, GameEventInfo info)
     {
         BuySystem.ResetAllPurchaseCounts();
+        WeaponRestrictionManager.ResetRoundPurchases();
+        return HookResult.Continue;
+    }
+
+    [GameEventHandler]
+    public HookResult OnPlayerHurt(EventPlayerHurt @event, GameEventInfo info)
+    {
+        if (!Config.EnableDamageMoneyReward)
+            return HookResult.Continue;
+
+        var client = @event.Userid;
+        var attacker = @event.Attacker;
+        var damage = @event.DmgHealth;
+
+        if (client == null || !client.IsValid) return HookResult.Continue;
+        if (attacker == null || !attacker.IsValid) return HookResult.Continue;
+        if (attacker.InGameMoneyServices == null) return HookResult.Continue;
+
+        attacker.InGameMoneyServices.Account += damage;
+        Utilities.SetStateChanged(attacker, "CCSPlayerController", "m_pInGameMoneyServices");
+
         return HookResult.Continue;
     }
 

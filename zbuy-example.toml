@@ -1,9 +1,11 @@
 # Global Buy system settings
-EnableBuyCommands = true
-WeaponBuyZoneOnly = false                              # If true, players can only buy weapons in buy zones
-AllowedTeamsToBuy = ["CounterTerrorist", "Terrorist"]  # Teams allowed to buy weapons
+EnableBuyCommands = true        # If true, players can use buy commands
+WeaponBuyZoneOnly = false       # If true, players can only buy weapons in buy zones
+EnableDamageMoneyReward = true  # If true, players receive money for damaging enemies
+AllowedTeamsToBuy = ["T", "CT"] # Teams allowed to buy weapons (T = Terrorist, CT = Counter-Terrorist)
 
 # Supported weapon data properties
+#
 # [WeaponDatas."weapon_name"]
 # EnableBuyCommand              - Enable/disable buy commands for this weapon
 # BuyAliases                    - Alternative names for buy commands (e.g., ["ak", "ak47", "kalash"])
@@ -20,9 +22,12 @@ AllowedTeamsToBuy = ["CounterTerrorist", "Terrorist"]  # Teams allowed to buy we
 #                                 e.g., PriceScaleMultiplicative = false, Price = 1000, PriceScale = 0.2
 #                                 1st purchase: 1000, 2nd purchase: 1200, 3rd purchase: 1400, etc.
 
+# MaxPurchasesPerRound          - Maximum number of times this weapon can be purchased per round
+#                                 e.g., MaxPurchasesPerRound = 3 means players can buy this weapon max 3 times per round
+
 [WeaponDatas]
 
-# Pistols
+# Pistol
 [WeaponDatas.weapon_glock]
 EnableBuyCommand = true
 
@@ -55,17 +60,13 @@ EnableBuyCommand = true
 EnableBuyCommand = false
 BuyAliases = ["r8"]
 
-# SMGs (Submachine Guns)
+# SMG
 [WeaponDatas.weapon_mac10]
 EnableBuyCommand = true
 BuyAliases = ["mac"]
 
 [WeaponDatas.weapon_mp9]
 EnableBuyCommand = true
-
-[WeaponDatas.weapon_mp5sd]
-EnableBuyCommand = true
-BuyAliases = ["mp5"]
 
 [WeaponDatas.weapon_mp7]
 EnableBuyCommand = true
@@ -80,7 +81,7 @@ EnableBuyCommand = true
 [WeaponDatas.weapon_p90]
 EnableBuyCommand = true
 
-# Shotguns
+# Shotgun
 [WeaponDatas.weapon_nova]
 EnableBuyCommand = true
 
@@ -95,7 +96,7 @@ BuyAliases = ["sawed"]
 [WeaponDatas.weapon_mag7]
 EnableBuyCommand = true
 
-# Assault Rifles
+# Rifles
 [WeaponDatas.weapon_famas]
 EnableBuyCommand = true
 
@@ -152,7 +153,8 @@ EnableBuyCommand = false
 # Grenades
 [WeaponDatas.weapon_hegrenade]
 EnableBuyCommand = true
-BuyAliases = ["he", "hegrenade", "nade"]
+BuyAliases = ["he", "hegrenade", "grenade", "nade"]
+MaxPurchasesPerRound = 3
 
 [WeaponDatas.weapon_flashbang]
 EnableBuyCommand = false
@@ -172,10 +174,9 @@ EnableBuyCommand = true
 [WeaponDatas.weapon_decoy]
 EnableBuyCommand = false
 
-# Equipment
-[WeaponDatas.weapon_taser]
+# Others
+[WeaponDatas.weapon_taser ]
 EnableBuyCommand = false
-BuyAliases = ["zeus", "taser"]
 
 [WeaponDatas.item_kevlar]
 EnableBuyCommand = true
