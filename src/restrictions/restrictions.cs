@@ -120,7 +120,7 @@ public static class WeaponRestrictionManager
     {
         if (player != null && !AdminManager.PlayerHasPermissions(player, "@css/generic"))
         {
-            player.PrintToChat($" {ChatColors.Red}[ZBuy] You don't have permission to use this command.");
+            player.PrintToChat($" {ChatColors.DarkRed}[{ChatColors.Orange}ZBuy{ChatColors.DarkRed}] {ChatColors.LightRed}You don't have permission to use this command.");
             return;
         }
 
@@ -129,7 +129,7 @@ public static class WeaponRestrictionManager
         {
             string message = "Usage: css_zb_enabled <0/1>";
             if (player != null)
-                player.PrintToChat($" {ChatColors.Red}[ZBuy] {message}");
+                player.PrintToChat($" {ChatColors.DarkRed}[{ChatColors.Orange}ZBuy{ChatColors.DarkRed}] {ChatColors.LightRed}{message}");
             else
                 Server.PrintToConsole($"[ZBuy] {message}");
             return;
@@ -139,7 +139,7 @@ public static class WeaponRestrictionManager
         SetZbuyEnabled(enabled);
 
         string statusMessage = enabled ? "ZBuy system enabled" : "ZBuy system disabled";
-        string chatMessage = $" {ChatColors.Green}[ZBuy] {statusMessage}";
+        string chatMessage = $" {ChatColors.Green}[{ChatColors.Orange}ZBuy{ChatColors.Green}] {ChatColors.Lime}{statusMessage}";
 
         if (player != null)
         {
@@ -158,7 +158,7 @@ public static class WeaponRestrictionManager
     {
         if (player != null && !AdminManager.PlayerHasPermissions(player, "@css/generic"))
         {
-            player.PrintToChat($" {ChatColors.Red}[ZBuy] You don't have permission to use this command.");
+            player.PrintToChat($" {ChatColors.DarkRed}[{ChatColors.Orange}ZBuy{ChatColors.DarkRed}] {ChatColors.LightRed}You don't have permission to use this command.");
             return;
         }
 
@@ -169,7 +169,7 @@ public static class WeaponRestrictionManager
         {
             string message = $"Unknown weapon: {weaponArg}";
             if (player != null)
-                player.PrintToChat($" {ChatColors.Red}[ZBuy] {message}");
+                player.PrintToChat($" {ChatColors.DarkRed}[{ChatColors.Orange}ZBuy{ChatColors.DarkRed}] {ChatColors.LightRed}{message}");
             else
                 Server.PrintToConsole($"[ZBuy] {message}");
             return;
@@ -179,7 +179,7 @@ public static class WeaponRestrictionManager
 
         string cleanName = Utils.CleanWeaponName(weaponName);
         string statusMessage = $"Weapon '{cleanName}' has been restricted";
-        string chatMessage = $" {ChatColors.Yellow}[ZBuy] {statusMessage}";
+        string chatMessage = $" {ChatColors.LightYellow}[{ChatColors.Orange}ZBuy{ChatColors.LightYellow}] {ChatColors.Gold}{statusMessage}";
 
         if (player != null)
         {
@@ -198,7 +198,7 @@ public static class WeaponRestrictionManager
     {
         if (player != null && !AdminManager.PlayerHasPermissions(player, "@css/generic"))
         {
-            player.PrintToChat($" {ChatColors.Red}[ZBuy] You don't have permission to use this command.");
+            player.PrintToChat($" {ChatColors.DarkRed}[{ChatColors.Orange}ZBuy{ChatColors.DarkRed}] {ChatColors.LightRed}You don't have permission to use this command.");
             return;
         }
 
@@ -209,7 +209,7 @@ public static class WeaponRestrictionManager
         {
             string message = $"Unknown weapon: {weaponArg}";
             if (player != null)
-                player.PrintToChat($" {ChatColors.Red}[ZBuy] {message}");
+                player.PrintToChat($" {ChatColors.DarkRed}[{ChatColors.Orange}ZBuy{ChatColors.DarkRed}] {ChatColors.LightRed}{message}");
             else
                 Server.PrintToConsole($"[ZBuy] {message}");
             return;
@@ -219,7 +219,7 @@ public static class WeaponRestrictionManager
 
         string cleanName = Utils.CleanWeaponName(weaponName);
         string statusMessage = $"Weapon '{cleanName}' has been unrestricted";
-        string chatMessage = $" {ChatColors.Green}[ZBuy] {statusMessage}";
+        string chatMessage = $" {ChatColors.Green}[{ChatColors.Orange}ZBuy{ChatColors.Green}] {ChatColors.Lime}{statusMessage}";
 
         if (player != null)
         {
@@ -238,7 +238,7 @@ public static class WeaponRestrictionManager
     {
         if (player != null && !AdminManager.PlayerHasPermissions(player, "@css/generic"))
         {
-            player.PrintToChat($" {ChatColors.Red}[ZBuy] You don't have permission to use this command.");
+            player.PrintToChat($" {ChatColors.DarkRed}[{ChatColors.Orange}ZBuy{ChatColors.DarkRed}] {ChatColors.LightRed}You don't have permission to use this command.");
             return;
         }
 
@@ -250,7 +250,7 @@ public static class WeaponRestrictionManager
         {
             string message = $"Unknown weapon: {weaponArg}";
             if (player != null)
-                player.PrintToChat($" {ChatColors.Red}[ZBuy] {message}");
+                player.PrintToChat($" {ChatColors.DarkRed}[{ChatColors.Orange}ZBuy{ChatColors.DarkRed}] {ChatColors.LightRed}{message}");
             else
                 Server.PrintToConsole($"[ZBuy] {message}");
             return;
@@ -260,7 +260,7 @@ public static class WeaponRestrictionManager
         {
             string message = "Limit must be a non-negative integer (0 = no limit)";
             if (player != null)
-                player.PrintToChat($" {ChatColors.Red}[ZBuy] {message}");
+                player.PrintToChat($" {ChatColors.DarkRed}[{ChatColors.Orange}ZBuy{ChatColors.DarkRed}] {ChatColors.LightRed}{message}");
             else
                 Server.PrintToConsole($"[ZBuy] {message}");
             return;
@@ -272,7 +272,7 @@ public static class WeaponRestrictionManager
         string statusMessage = limit == 0
             ? $"Round limit removed for '{cleanName}'"
             : $"Round limit set to {limit} for '{cleanName}'";
-        string chatMessage = $" {ChatColors.Green}[ZBuy] {statusMessage}";
+        string chatMessage = $" {ChatColors.LightBlue}[{ChatColors.Orange}ZBuy{ChatColors.LightBlue}] {ChatColors.White}{statusMessage}";
 
         if (player != null)
         {
@@ -291,14 +291,14 @@ public static class WeaponRestrictionManager
     {
         if (player != null && !AdminManager.PlayerHasPermissions(player, "@css/generic"))
         {
-            player.PrintToChat($" {ChatColors.Red}[ZBuy] You don't have permission to use this command.");
+            player.PrintToChat($" {ChatColors.DarkRed}[{ChatColors.Orange}ZBuy{ChatColors.DarkRed}] {ChatColors.LightRed}You don't have permission to use this command.");
             return;
         }
 
         ResetRoundPurchases();
 
         string statusMessage = "Round purchase counts have been reset";
-        string chatMessage = $" {ChatColors.Green}[ZBuy] {statusMessage}";
+        string chatMessage = $" {ChatColors.LightPurple}[{ChatColors.Orange}ZBuy{ChatColors.LightPurple}] {ChatColors.Silver}{statusMessage}";
 
         if (player != null)
         {

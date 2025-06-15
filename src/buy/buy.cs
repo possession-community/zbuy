@@ -40,7 +40,7 @@ public static class BuySystem
 
         if (!WeaponRestrictionManager.IsZbuyEnabled())
         {
-            player.PrintToChat($" {ChatColors.Red}[ZBuy] {Zbuy.Instance.Localizer["Buy commands are disabled"]}");
+            player.PrintToChat($" {ChatColors.DarkRed}[{ChatColors.Orange}ZBuy{ChatColors.DarkRed}] {ChatColors.LightRed}{Zbuy.Instance.Localizer["Buy commands are disabled"]}");
             return;
         }
 
@@ -49,7 +49,7 @@ public static class BuySystem
 
         if (string.IsNullOrEmpty(weaponName))
         {
-            player.PrintToChat($" {ChatColors.Red}[ZBuy] {Zbuy.Instance.Localizer["Invalid weapon command"]}");
+            player.PrintToChat($" {ChatColors.DarkRed}[{ChatColors.Orange}ZBuy{ChatColors.DarkRed}] {ChatColors.LightRed}{Zbuy.Instance.Localizer["Invalid weapon command"]}");
             return;
         }
 
@@ -64,7 +64,7 @@ public static class BuySystem
 
         if (!WeaponRestrictionManager.IsZbuyEnabled())
         {
-            player.PrintToChat($" {ChatColors.Red}[ZBuy] {Zbuy.Instance.Localizer["Buy commands are disabled"]}");
+            player.PrintToChat($" {ChatColors.DarkRed}[{ChatColors.Orange}ZBuy{ChatColors.DarkRed}] {ChatColors.LightRed}{Zbuy.Instance.Localizer["Buy commands are disabled"]}");
             return;
         }
 
@@ -73,7 +73,7 @@ public static class BuySystem
 
         if (string.IsNullOrEmpty(foundWeaponName))
         {
-            player.PrintToChat($" {ChatColors.Red}[ZBuy] {Zbuy.Instance.Localizer["Unknown weapon", weaponArg]}");
+            player.PrintToChat($" {ChatColors.DarkRed}[{ChatColors.Orange}ZBuy{ChatColors.DarkRed}] {ChatColors.LightRed}{Zbuy.Instance.Localizer["Unknown weapon", weaponArg]}");
             return;
         }
 
@@ -84,37 +84,37 @@ public static class BuySystem
     {
         if (!Zbuy.Instance.Config.WeaponDatas.TryGetValue(weaponName, out WeaponData? weaponData))
         {
-            player.PrintToChat($" {ChatColors.Red}[ZBuy] {Zbuy.Instance.Localizer["Weapon not configured", weaponName]}");
+            player.PrintToChat($" {ChatColors.DarkRed}[{ChatColors.Orange}ZBuy{ChatColors.DarkRed}] {ChatColors.LightRed}{Zbuy.Instance.Localizer["Weapon not configured", weaponName]}");
             return;
         }
 
         if (!WeaponRestrictionManager.IsWeaponBuyEnabled(weaponName))
         {
-            player.PrintToChat($" {ChatColors.Red}[ZBuy] {Zbuy.Instance.Localizer["This weapon cannot be purchased"]}");
+            player.PrintToChat($" {ChatColors.DarkRed}[{ChatColors.Orange}ZBuy{ChatColors.DarkRed}] {ChatColors.Yellow}{Zbuy.Instance.Localizer["This weapon cannot be purchased"]}");
             return;
         }
 
         if (weaponData.EnableBuyCommand != true)
         {
-            player.PrintToChat($" {ChatColors.Red}[ZBuy] {Zbuy.Instance.Localizer["This weapon cannot be purchased"]}");
+            player.PrintToChat($" {ChatColors.DarkRed}[{ChatColors.Orange}ZBuy{ChatColors.DarkRed}] {ChatColors.Yellow}{Zbuy.Instance.Localizer["This weapon cannot be purchased"]}");
             return;
         }
 
         if (!Utils.IsPlayerAlive(player))
         {
-            player.PrintToChat($" {ChatColors.Red}[ZBuy] {Zbuy.Instance.Localizer["You must be alive to buy weapons"]}");
+            player.PrintToChat($" {ChatColors.LightPurple}[{ChatColors.Orange}ZBuy{ChatColors.LightPurple}] {ChatColors.Magenta}{Zbuy.Instance.Localizer["You must be alive to buy weapons"]}");
             return;
         }
 
         if (!Zbuy.Instance.Config.GetAllowedCsTeams().Contains(player.Team))
         {
-            player.PrintToChat($" {ChatColors.Red}[ZBuy] {Zbuy.Instance.Localizer["Your team cannot buy weapons"]}");
+            player.PrintToChat($" {ChatColors.LightPurple}[{ChatColors.Orange}ZBuy{ChatColors.LightPurple}] {ChatColors.Magenta}{Zbuy.Instance.Localizer["Your team cannot buy weapons"]}");
             return;
         }
 
         if (Zbuy.Instance.Config.WeaponBuyZoneOnly && !Utils.IsClientInBuyZone(player))
         {
-            player.PrintToChat($" {ChatColors.Red}[ZBuy] {Zbuy.Instance.Localizer["You must be in buy zone to purchase weapons"]}");
+            player.PrintToChat($" {ChatColors.DarkBlue}[{ChatColors.Orange}ZBuy{ChatColors.DarkBlue}] {ChatColors.LightBlue}{Zbuy.Instance.Localizer["You must be in buy zone to purchase weapons"]}");
             return;
         }
 
@@ -123,7 +123,7 @@ public static class BuySystem
             int limit = WeaponRestrictionManager.GetWeaponRoundLimit(weaponName);
             int currentCount = WeaponRestrictionManager.GetPlayerRoundPurchaseCount(player, weaponName);
             string cleanName = Utils.CleanWeaponName(weaponName);
-            player.PrintToChat($" {ChatColors.Red}[ZBuy] Round purchase limit reached for {cleanName} ({currentCount}/{limit})");
+            player.PrintToChat($" {ChatColors.LightYellow}[{ChatColors.Orange}ZBuy{ChatColors.LightYellow}] {ChatColors.Gold}Round purchase limit reached for {ChatColors.White}{cleanName} {ChatColors.Gold}({ChatColors.Red}{currentCount}{ChatColors.Gold}/{ChatColors.Green}{limit}{ChatColors.Gold})");
             return;
         }
 
@@ -131,7 +131,7 @@ public static class BuySystem
 
         if (player.InGameMoneyServices?.Account < price)
         {
-            player.PrintToChat($" {ChatColors.Red}[ZBuy] {Zbuy.Instance.Localizer["Insufficient funds", price, player.InGameMoneyServices.Account]}");
+            player.PrintToChat($" {ChatColors.DarkRed}[{ChatColors.Orange}ZBuy{ChatColors.DarkRed}] {ChatColors.LightRed}{Zbuy.Instance.Localizer["Insufficient funds", $"{ChatColors.Gold}${price}", $"{ChatColors.Red}${player.InGameMoneyServices.Account}"]}");
             return;
         }
 
@@ -161,7 +161,18 @@ public static class BuySystem
             WeaponRestrictionManager.RecordWeaponPurchase(player, weaponName);
 
             string cleanName = Utils.CleanWeaponName(weaponName);
-            player.PrintToChat($" {ChatColors.Green}[ZBuy] {Zbuy.Instance.Localizer["Purchased weapon", cleanName, price]}");
+
+            int roundLimit = WeaponRestrictionManager.GetWeaponRoundLimit(weaponName);
+            if (roundLimit > 0)
+            {
+                int currentRoundCount = WeaponRestrictionManager.GetPlayerRoundPurchaseCount(player, weaponName);
+                player.PrintToChat($" {ChatColors.Green}[{ChatColors.Orange}ZBuy{ChatColors.Green}] {ChatColors.Lime}{Zbuy.Instance.Localizer["Purchased weapon", $"{ChatColors.White}{cleanName}", $"{ChatColors.Gold}${price}"]} {ChatColors.Silver}({ChatColors.LightBlue}{currentRoundCount}{ChatColors.Silver}/{ChatColors.Green}{roundLimit}{ChatColors.Silver})");
+            }
+            else
+            {
+                int totalCount = GetPurchaseCount(player, weaponName);
+                player.PrintToChat($" {ChatColors.Green}[{ChatColors.Orange}ZBuy{ChatColors.Green}] {ChatColors.Lime}{Zbuy.Instance.Localizer["Purchased weapon", $"{ChatColors.White}{cleanName}", $"{ChatColors.Gold}${price}"]}");
+            }
         });
     }
 
